@@ -1,0 +1,170 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = "", message = FALSE, warning = FALSE)
+library(tidyverse)
+library(mosaic)
+library(ggformula)
+library(ggplot2)
+library(car)
+library(ggpubr)
+```
+
+Import the Data
+
+```{r}
+tones <- read_csv('source_tones.csv')
+tones %>% head()
+```
+
+Summary Statistics
+
+```{r}
+df_stats(GKG_Tone ~ Source, data=tones)
+```
+
+Box Plot
+
+```{r fig.height=4, fig.width=7}
+gf_boxplot(GKG_Tone~ Source, data=tones, ylab="GKG Tone",
+           title="Distribution of Source Tones") + coord_flip()
+```
+
+```{r fig.height=4, fig.width=7}
+tones %>% 
+  ggplot(aes(x=GKG_Tone)) + 
+  geom_density(aes(fill = Source), alpha = 0.35) +
+  theme_minimal() +
+  labs(title = "Distribution of Tones by Source",
+       x="GKG Tones",
+       y="Number of Tones",
+       fill = "News Sources") +
+  scale_fill_manual(values = c("darkorange","purple","cyan4"))
+```
+
+```{r fig.height=4, fig.width=7}
+tones %>% 
+  ggplot(aes(x=GKG_Tone)) + 
+  geom_density(fill="cyan4") +
+  theme_minimal() +
+  labs(title="Distribution of Tones",
+       x = "GKG Tones",
+       y = "Number of Tones") 
+```
+
+```{r fig.height=7, fig.width=7}
+p1 <- tones %>% 
+  ggplot(aes(x=GKG_Tone)) + 
+  geom_density(fill="cyan4") +
+  theme_minimal() +
+  labs(title="Distribution of Tones",
+       x = "GKG Tones",
+       y = "Density of Tones") 
+
+p2 <- tones %>% 
+  ggplot(aes(x=GKG_Tone)) + 
+  geom_density(aes(fill = Source), alpha = 0.35) +
+  theme_minimal() +
+  labs(title = "Distribution of Tones by Source",
+       x="GKG Tones",
+       y="Density of Tones",
+       fill = "News Sources") +
+  scale_fill_manual(values = c("darkorange","purple","cyan4"))
+
+p3 <- gf_boxplot(GKG_Tone~ Source, data=tones, ylab="GKG Tones", xlab="New Sources",
+           title="Distribution of Tones") + coord_flip()
+
+ggarrange(p1, p2, ncol = 1, nrow=2)
+
+library("gridExtra")
+grid.arrange(p2,                             
+             arrangeGrob(p1, p3, ncol = 2), 
+             nrow = 2) 
+```
+
+```{r}
+gf_boxplot(GKG_Tone~ Source, data=tones, ylab="GKG Tone",
+           title="Distribution of Source Tones") + coord_flip()
+```
+
+
+```{r}
+tones <- read_csv('source_tones.csv')
+leveneTest(GKG_Tone ~ Source, data=tones)
+```
+
+
+
+
+
+ANOVA Test
+
+```{r}
+tones.aov <- aov(GKG_Tone~ factor(Source), data=tones)
+anova(tones.aov)
+```
+
+Testing Assumptions
+
+```{r fig.height=4, fig.width=7}
+par(mfrow=c(1,2))
+tones.aov <- lm(GKG_Tone~ factor(Source), data=tones)
+pl1 <- plot(tones.aov,1)
+pl2 <- plot(tones.aov,2, )
+```
+
+```{r fig.height=4, fig.width=7}
+plot(tones.aov,)
+```
+
+
+```{r}
+TukeyHSD(tones.aov)
+```
+
+### Pairwise Comparisons
+
+```{r}
+data.local <- subset(tones, Source == "Local_Source")
+data.western <- subset(tones, Source == "Western_Source")
+data.chinese <- subset(tones, Source == "Chinese_Source")
+
+L.C <- t.test(data.local$GKG_Tone, data.chinese$GKG_Tone,
+       mu=0, alternative="two.sided", 
+       var.equal = FALSE) ### Local_Source-Chinese_Source
+L.C
+
+W.C <- t.test(data.western$GKG_Tone, data.chinese$GKG_Tone,
+       mu=0, alternative="two.sided", 
+       var.equal = FALSE) ### Western_Source-Chinese_Source
+W.C
+
+W.L <- t.test(data.western$GKG_Tone, data.local$GKG_Tone,
+       mu=0, alternative="two.sided", 
+       var.equal = FALSE) ### Western_Source-Local_Source
+W.L
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
